@@ -1,0 +1,23 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "@clerk/backend": "^2.32.1",
+    "@clerk/express": "^1.5.0",
+    "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.49.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "json2csv": "^6.0.0-alpha.2",
+    "node-cron": "^4.2.1",
+    "pdfkit": "^0.17.2",
+    "resend": "^6.9.3"
+  }
+}
