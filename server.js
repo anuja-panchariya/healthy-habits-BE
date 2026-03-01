@@ -18,7 +18,7 @@ const app = express()
 const PORT = process.env.PORT || 5000
 
 app.use(cors({
-  origin: "https://healthy-habits-be-1.onrender.com/",  
+  origin: "https://healthy-habits-v2.netlify.app/",  
   credentials: true
 }))
 
