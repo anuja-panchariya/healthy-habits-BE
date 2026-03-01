@@ -1,9 +1,7 @@
 import express from "express"
 import cors from "cors"
 import dotenv from "dotenv"
-
 import cron from 'node-cron'
-
 
 import habitRoutes from "./routes/habitRoutes.js"
 import analyticsRoutes from "./routes/analyticsRoutes.js"
@@ -20,10 +18,25 @@ const app = express()
 const PORT = process.env.PORT || 5000
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: "https://healthy-habits-be-1.onrender.com/",  
   credentials: true
 }))
+
+// ✅ EXPRESS JSON
 app.use(express.json())
+
+// ROOT ROUTE 
+app.get("/", (req, res) => {
+  res.json({ 
+    message: " Healthy Habits BE Live!", 
+    status: "running",
+    endpoints: ["/api/health", "/api/habits", "/api/analytics"]
+  })
+})
+
+//  HEALTH CHECK 
+app.get("/api/health", (req, res) => res.json({ status: "healthy" }))
+
 app.use(authMiddleware)
 
 app.use("/api/habits", habitRoutes)
@@ -33,18 +46,12 @@ app.use("/api/moods", moodRoutes)
 app.use("/api/ai", aiRoutes)
 app.use("/api/reminders", reminderRoutes)
 
-app.get("/api/health", (req, res) => res.json({ status: "healthy" }))
 app.use(errorHandler)
 
 cron.schedule('0 8 * * *', async () => {
   console.log('🌅 Auto-sending daily reminders...')
-  
-  // Get all users with habits
-  const { data: allHabits } = await supabase.from('habits').select('user_id')
-  
-  // Send to each user (batch logic)
 })
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+  console.log(`🚀 Server running on port ${PORT}`)
 })
