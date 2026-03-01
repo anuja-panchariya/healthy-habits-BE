@@ -1,57 +1,34 @@
-// routes/reminderRoutes.js - BULLETPROOF VERSION
-import express from 'express'
-import { requireAuth } from '@clerk/express'
-import { Resend } from 'resend'
+import { Router } from 'express';
+import { sendReminderEmail } from '../services/sendReminderEmail.js';
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const router = express.Router()
+const router = Router();
 
-router.post('/test', requireAuth(), async (req, res) => {
+// FRONTEND CALL - /api/reminders/send
+router.post('/send', async (req, res) => {
   try {
-    console.log('🔍 Test email triggered!')
+    const { email, habitName } = req.body;
     
-    // ✅ CLERK USER EMAIL (Multiple fallbacks)
-    const { userId } = await req.auth()
-    console.log('👤 USER ID:', userId)
-    
-    let email = 'anuja.panchariya@gmail.com' // YOUR REAL EMAIL
-    
-    // Try to get from Clerk
-    if (req.auth().user?.primaryEmailAddress?.emailAddress) {
-      email = req.auth().user.primaryEmailAddress.emailAddress
-    }
-    
-    console.log('📧 SENDING TO:', email)
-    console.log('🔑 RESEND KEY LOADED:', !!process.env.RESEND_API_KEY)
-    
-    // ✅ REAL RESEND EMAIL
-    const data = await resend.emails.send({
-      from: 'HealthyHabits <onboarding@resend.dev>',
-      to: [email],
-      subject: '✅ Anuja - Test Email LIVE!',
-      html: `
-        <h1 style="color: #10b981;">🎉 HealthyHabits Email WORKING!</h1>
-        <p><strong>User ID:</strong> ${userId}</p>
-        <p><strong>Time:</strong> ${new Date().toLocaleString('en-IN')}</p>
-        <div style="background: #10b981; color: white; padding: 20px; border-radius: 10px;">
-          <h2>🥤 Your Daily Reminder:</h2>
-          <p>Keep tracking your habits! 💪</p>
-        </div>
-      `
-    })
-    
-    console.log('✅ EMAIL SUCCESS:', data.data.id)
-    res.json({ success: true, sentTo: email })
-    
-  } catch (error) {
-    console.error('❌ RESEND ERROR FULL:', error)
-    console.error('❌ RESEND DATA:', error.data)
-    
-    res.status(500).json({ 
-      error: error.message,
-      debug: process.env.RESEND_API_KEY ? 'KEY OK' : 'KEY MISSING'
-    })
-  }
-})
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px;">
+        <h2 style="color: #3b82f6;">⏰ ${habitName} Reminder!</h2>
+        <p>Time to complete your daily habit!</p>
+        <br/>
+        <a href="https://healthy-habits-v2.netlify.app" 
+           style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+          Open Healthy Habits
+        </a>
+        <br/><br/>
+        <p style="color: #6b7280; font-size: 12px;">
+          This is an automated reminder from Healthy Habits.
+        </p>
+      </div>
+    `;
 
-export default router
+    await sendReminderEmail(email, `⏰ ${habitName} Reminder`, html);
+    res.json({ success: true, message: "Reminder sent successfully!" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+export default router;
