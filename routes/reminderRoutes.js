@@ -1,33 +1,60 @@
+// routes/reminderRoutes.js
 import { Router } from 'express';
 import { sendReminderEmail } from '../services/sendReminderEmail.js';
 
 const router = Router();
 
-// FRONTEND CALL - /api/reminders/send
+// Frontend "Reminder" button → REAL EMAIL
 router.post('/send', async (req, res) => {
   try {
-    const { email, habitName } = req.body;
+    const { email, habits } = req.body;
+    
+    if (!email || !habits || !Array.isArray(habits)) {
+      return res.status(400).json({ 
+        error: "Email and habits array required" 
+      });
+    }
+
+    //  Build beautiful HTML email
+    const habitList = habits.map(h => ` ${h.title}`).join('<br>');
     
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px;">
-        <h2 style="color: #3b82f6;">⏰ ${habitName} Reminder!</h2>
-        <p>Time to complete your daily habit!</p>
-        <br/>
+      <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #3b82f6;">⏰ Daily Habit Reminders</h2>
+        <p>Good morning! Complete today's habits:</p>
+        
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+          ${habitList}
+        </div>
+        
         <a href="https://healthy-habits-v2.netlify.app" 
-           style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
-          Open Healthy Habits
+           style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 500;">
+          Open Healthy Habits App
         </a>
-        <br/><br/>
-        <p style="color: #6b7280; font-size: 12px;">
-          This is an automated reminder from Healthy Habits.
+        
+        <p style="color: #64748b; font-size: 14px; margin-top: 24px; text-align: center;">
+          Stay consistent! You got this 💪
         </p>
       </div>
     `;
 
-    await sendReminderEmail(email, `⏰ ${habitName} Reminder`, html);
-    res.json({ success: true, message: "Reminder sent successfully!" });
+    // Send REAL EMAIL
+    await sendReminderEmail(
+      email, 
+      `⏰ ${habits.length} Daily Habit Reminder${habits.length !== 1 ? 's' : ''}`, 
+      html
+    );
+    
+    res.json({ 
+      success: true, 
+      message: ` Email sent to ${email}! Check inbox.` 
+    });
+    
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Reminder route error:", error.message);
+    res.status(500).json({ 
+      error: "Failed to send reminder email" 
+    });
   }
 });
 
