@@ -1,45 +1,20 @@
 import express from 'express'
-import { generateRecommendations, generatePlan } from '../controllers/aiController.js'
+import { supabase } from '../config/supabaseClient.js'
+import { generateAIResponse } from '../services/aiService.js'
 
 const router = express.Router()
 
-// ✅ REAL AI RECOMMENDATIONS (Supabase + Gemini)
-router.get('/recommendations', generateRecommendations)
-
-// ✅ REAL AI PLAN GENERATOR  
-router.post('/plan', generatePlan)
-
-// ✅ WELLNESS SCORE (AI Analysis)
-router.get('/wellness-score', async (req, res) => {
+router.get('/recommendations', async (req, res) => {
+  const authData = await req.auth()
+  const { data: habits } = await supabase
+    .from('habits').select('title,category').eq('user_id', authData.userId)
+  
+  const prompt = `User habits: ${JSON.stringify(habits||[])}. Suggest 3 NEW habits. JSON array.`
   try {
-    const authData = await req.auth()
-    const userId = authData.userId
-    
-    const { data: habits } = await supabase
-      .from('habits')
-      .select('title, streak, category, logs')
-      .eq('user_id', userId)
-    
-    const prompt = `AI Wellness Score (0-100):
-Habits: ${JSON.stringify(habits)}
-Score factors: streak, variety, consistency, balance
-
-JSON: {
-  "score": 87,
-  "grade": "A-",
-  "insights": ["Hydration perfect", "Add mindfulness"],
-  "nextLevel": "Evening walk → 95+"
-}`
-
-    const aiResponse = await generateAIResponse(prompt)
-    res.json(aiResponse)
-  } catch (error) {
-    res.json({ 
-      score: 75, 
-      grade: "B", 
-      insights: ["Good start!"],
-      nextLevel: "Add 1 more habit"
-    })
+    const recommendations = await generateAIResponse(prompt)
+    res.json({ recommendations: Array.isArray(recommendations) ? recommendations : [], habitsCount: habits?.length || 0 })
+  } catch {
+    res.json({ recommendations: [], habitsCount: 0 })
   }
 })
 
