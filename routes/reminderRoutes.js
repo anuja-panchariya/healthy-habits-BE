@@ -1,10 +1,8 @@
-// routes/reminderRoutes.js
 import { Router } from 'express';
 import { sendReminderEmail } from '../services/sendReminderEmail.js';
 
 const router = Router();
 
-// Frontend "Reminder" button → REAL EMAIL
 router.post('/send', async (req, res) => {
   try {
     const { email, habits } = req.body;
