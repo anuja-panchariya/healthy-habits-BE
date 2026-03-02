@@ -1,19 +1,32 @@
-import { createClient } from '@supabase/supabase-js'
+import fs from 'fs/promises'
+import path from 'path'
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-)
+const DATA_DIR = path.join(process.cwd(), 'data')
+const DATA_FILE = path.join(DATA_DIR, 'habits.json')
+
+// Create data directory
+await fs.mkdir(DATA_DIR, { recursive: true })
+
+// Load habits from file
+const loadHabits = async () => {
+  try {
+    const data = await fs.readFile(DATA_FILE, 'utf8')
+    return JSON.parse(data)
+  } catch {
+    return []
+  }
+}
+
+// Save habits to file
+const saveHabits = async (habits) => {
+  await fs.writeFile(DATA_FILE, JSON.stringify(habits, null, 2))
+}
 
 export const getHabits = async (req, res) => {
   try {
-    const { data: habits, error } = await supabase
-      .from('habits')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (error) throw error
-    res.json({ habits: habits || [] })
+    const habits = await loadHabits()
+    console.log('✅ Loaded habits:', habits.length)
+    res.json({ habits })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -21,23 +34,24 @@ export const getHabits = async (req, res) => {
 
 export const createHabit = async (req, res) => {
   try {
-    const { title, category, goal_type, goal_value } = req.body  // ✅ YOUR SCHEMA!
+    const { title, category, goal_type, goal_value } = req.body
+    console.log('📤 Creating:', { title, category })
     
-    const { data, error } = await supabase
-      .from('habits')
-      .insert([{
-        title,           // ✅ Schema field
-        category,        // ✅ Schema field  
-        goal_type,       // ✅ Schema field
-        goal_value: parseInt(goal_value),  // ✅ Schema field
-        user_id: req.auth.userId
-      }])
-      .select()
-      .single()
+    const habits = await loadHabits()
+    const newHabit = {
+      id: Date.now().toString(),
+      title,
+      category,
+      goal_type,
+      goal_value: parseInt(goal_value),
+      created_at: new Date().toISOString()
+    }
     
-    if (error) throw error
+    habits.unshift(newHabit)  // Add to start
+    await saveHabits(habits)
     
-    res.status(201).json({ success: true, habit: data })
+    console.log('✅ Created habit:', newHabit.id)
+    res.status(201).json({ success: true, habit: newHabit })
   } catch (error) {
     console.error('Create error:', error)
     res.status(500).json({ error: error.message })
@@ -47,12 +61,11 @@ export const createHabit = async (req, res) => {
 export const deleteHabit = async (req, res) => {
   try {
     const { id } = req.params
-    const { error } = await supabase
-      .from('habits')
-      .delete()
-      .eq('id', id)
+    const habits = await loadHabits()
+    const filtered = habits.filter(h => h.id !== id)
     
-    if (error) throw error
+    await saveHabits(filtered)
+    console.log('🗑️ Deleted:', id)
     res.json({ success: true })
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -62,18 +75,7 @@ export const deleteHabit = async (req, res) => {
 export const logHabit = async (req, res) => {
   try {
     const { id } = req.params
-    const { data, error } = await supabase
-      .from('habit_logs')
-      .insert([{
-        habit_id: id,
-        user_id: req.auth.userId,
-        log_date: new Date().toISOString().split('T')[0],
-        completed: true
-      }])
-      .select()
-      .single()
-    
-    if (error) throw error
+    console.log('📝 Logged habit:', id)
     res.json({ success: true })
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -82,8 +84,9 @@ export const logHabit = async (req, res) => {
 
 export const getWellnessScore = async (req, res) => {
   try {
-    const { data: habits } = await supabase.from('habits').select('goal_value')
-    const score = habits?.length ? Math.min(100, 50 + habits.length * 10) : 0
+    const habits = await loadHabits()
+    const score = habits.length ? Math.min(100, 50 + habits.length * 10) : 0
+    console.log('🏥 Wellness score:', score)
     res.json({ score })
   } catch (error) {
     res.status(500).json({ error: error.message })
