@@ -1,20 +1,24 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
-const genAI = new GoogleGenerativeAI("sk-emergent-4B3F0F6Ee9eCbAcA62")
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY) // ← .env me GEMINI_API_KEY
 
 export async function generateAIResponse(prompt) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }) // Updated model
     const result = await model.generateContent(prompt)
-    return result.response.text()
-  } catch (error) {
-    console.error('Emergent AI Error:', error)
+    const text = await result.response.text()
     
-    // Fallback recommendations (if API fails)
-    return JSON.stringify([
-      { title: "Morning Water Routine", category: "hydration", reason: "Boosts metabolism by 30% after waking up" },
-      { title: "Evening 10-min Walk", category: "movement", reason: "Improves digestion and sleep quality" },
-      { title: "5-min Gratitude Journal", category: "mindfulness", reason: "Reduces stress hormones instantly" }
-    ])
+    // Parse JSON safely
+    try {
+      return JSON.parse(text)
+    } catch {
+      return [{ title: "Keep tracking!", reason: "Consistency builds habits 💪" }]
+    }
+  } catch (error) {
+    console.error('Gemini AI Error:', error)
+    return [
+      { title: "Morning Water", category: "hydration", reason: "Boosts metabolism 30%" },
+      { title: "Evening Walk", category: "movement", reason: "Improves sleep quality" }
+    ]
   }
 }
