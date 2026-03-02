@@ -1,7 +1,5 @@
-// controllers/aiController.js - ADD MISSING EXPORTS
 import { supabase } from '../config/supabaseClient.js'
 
-// ✅ EXPORT 1: Already working
 export const generateRecommendations = async (req, res) => {
   try {
     const authData = await req.auth()
@@ -24,7 +22,6 @@ export const generateRecommendations = async (req, res) => {
   }
 }
 
-// ✅ EXPORT 2: MISSING YE ADD KARO
 export const generatePlan = async (req, res) => {
   try {
     const { prompt } = req.body
