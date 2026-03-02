@@ -3,7 +3,7 @@
  Full-Stack Wellness App with AI Insights & Realtime Analytics
 
 Frontend : https://healthy-habits-frontend.vercel.app
-Backend :https://healthy-habits-backend.onrender.com/api/health
+Backend :https://healthy-habits-be-1.onrender.com
 
 
 
