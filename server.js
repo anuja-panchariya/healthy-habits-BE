@@ -9,9 +9,9 @@ import challengeRoutes from "./routes/challengeRoutes.js"
 import moodRoutes from "./routes/moodRoutes.js"
 import aiRoutes from "./routes/aiRoutes.js"
 import reminderRoutes from "./routes/reminderRoutes.js"
-
-import { authMiddleware } from "./config/clerk.js"
+import { authMiddleware } from "./config/clerk.js"           
 import { errorHandler } from "./middleware/errorHandler.js"
+import { analyzeMood } from "./controllers/aiController.js" 
 
 dotenv.config()
 const app = express()
@@ -22,29 +22,32 @@ app.use(cors({
   credentials: true
 }))
 
-// ✅ EXPRESS JSON
 app.use(express.json())
 
-// ROOT ROUTE 
+// ROOT + HEALTH
 app.get("/", (req, res) => {
   res.json({ 
-    message: " Healthy Habits BE Live!", 
+    message: "Healthy Habits BE Live!", 
     status: "running",
-    endpoints: ["/api/health", "/api/habits", "/api/analytics"]
+    endpoints: ["/api/health", "/api/habits", "/api/analytics", "/api/moods/ai-analyze"] // ✅ Added
   })
 })
 
-//  HEALTH CHECK 
 app.get("/api/health", (req, res) => res.json({ status: "healthy" }))
 
+// 🔥 AUTH MIDDLEWARE
 app.use(authMiddleware)
 
+// ✅ ALL ROUTES (protected)
 app.use("/api/habits", habitRoutes)
 app.use("/api/analytics", analyticsRoutes)
 app.use("/api/challenges", challengeRoutes)
 app.use("/api/moods", moodRoutes)
 app.use("/api/ai", aiRoutes)
 app.use("/api/reminders", reminderRoutes)
+
+//  MOOD AI ANALYSIS 
+app.post('/api/moods/ai-analyze', analyzeMood) // ✅ ADDED HERE
 
 app.use(errorHandler)
 
