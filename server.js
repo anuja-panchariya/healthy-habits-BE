@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 5000
 
 // ✅ MIDDLEWARE FIRST (Fixed order!)
 app.use(cors({
-  origin: "https://healthy-habits-frontend-tawny.vercel.app/",  
+  origin: "https://healthy-habits-frontend-tawny.vercel.app",  
   credentials: true
 }))
 
