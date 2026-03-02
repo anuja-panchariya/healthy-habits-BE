@@ -17,6 +17,7 @@ dotenv.config()
 const app = express()
 const PORT = process.env.PORT || 5000
 
+// ✅ MIDDLEWARE FIRST (Fixed order!)
 app.use(cors({
   origin: "https://healthy-habits-frontend-tawny.vercel.app/",  
   credentials: true
@@ -24,37 +25,41 @@ app.use(cors({
 
 app.use(express.json())
 
-// ROOT + HEALTH
+// ✅ PUBLIC ROUTES (NO AUTH)
 app.get("/", (req, res) => {
   res.json({ 
     message: "Healthy Habits BE Live!", 
     status: "running",
-    endpoints: ["/api/health", "/api/habits", "/api/analytics", "/api/moods/ai-analyze"] // ✅ Added
+    endpoints: ["/api/health", "/api/habits", "/api/analytics", "/api/moods/ai-analyze"]
   })
 })
 
 app.get("/api/health", (req, res) => res.json({ status: "healthy" }))
 
-// 🔥 AUTH MIDDLEWARE
-app.use(authMiddleware)
-
-// ✅ ALL ROUTES (protected)
-app.use("/api/habits", habitRoutes)
+// ✅ ROUTES BEFORE GLOBAL AUTH (CRITICAL FIX!)
+app.use("/api/habits", habitRoutes)      // ← FIRST!
 app.use("/api/analytics", analyticsRoutes)
 app.use("/api/challenges", challengeRoutes)
 app.use("/api/moods", moodRoutes)
 app.use("/api/ai", aiRoutes)
 app.use("/api/reminders", reminderRoutes)
 
-//  MOOD AI ANALYSIS 
-app.post('/api/moods/ai-analyze', analyzeMood) // ✅ ADDED HERE
+// ✅ PUBLIC AI ENDPOINT (No auth needed)
+app.post('/api/moods/ai-analyze', analyzeMood)
 
+// ✅ GLOBAL AUTH AFTER ROUTES (Fixed!)
+app.use(authMiddleware)
+
+// ERROR HANDLER LAST
 app.use(errorHandler)
 
+// CRON JOB
 cron.schedule('0 8 * * *', async () => {
   console.log('🌅 Auto-sending daily reminders...')
 })
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`)
+  console.log(`✅ Health: http://localhost:${PORT}/api/health`)
+  console.log(`✅ Habits: http://localhost:${PORT}/api/habits`)
 })
