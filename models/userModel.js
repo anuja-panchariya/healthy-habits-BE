@@ -1,7 +1,6 @@
 import { supabase } from "../config/supabaseClient.js"
 import { v4 as uuidv4 } from 'uuid';
 
-// models/userModel.js - YE FUNCTION REPLACE:
 export async function getOrCreateUser(clerkId) {
   try {
     // First try to find existing user
