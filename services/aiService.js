@@ -1,4 +1,3 @@
-// backend/services/aiService.js
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
 const genAI = new GoogleGenerativeAI("sk-emergent-4B3F0F6Ee9eCbAcA62")
