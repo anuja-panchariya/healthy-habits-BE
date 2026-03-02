@@ -2,17 +2,17 @@ import express from "express"
 import { requireAuth } from "@clerk/express"
 import { 
   getStreaks, 
+  getAnalytics, 
   getTrends,        
-  getCategoryStats,
-  getWellnessScore   // ← Rename getAnalytics to getWellnessScore
-} from "../controllers/analyticsController.js"
+  getCategoryStats  
+} from "../controllers/analyticsController.js"  // ← Original names!
 
 const router = express.Router()
 
-// ✅ CLEAN ROUTES - NO CONFLICT!
 router.get('/streaks', requireAuth(), getStreaks)
 router.get('/trends', requireAuth(), getTrends)          
 router.get('/category-stats', requireAuth(), getCategoryStats) 
-router.get('/wellness-score', requireAuth(), getWellnessScore)  // ✅ Single wellness route
+router.get('/habits/wellness-score', requireAuth(), getAnalytics) 
+router.get("/", requireAuth(), getAnalytics)
 
 export default router
