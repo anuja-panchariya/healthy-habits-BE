@@ -119,29 +119,34 @@ app.get("/api/challenges/my", (req, res) => {
 })
 
 app.post("/api/challenges/:id/join", (req, res) => {
-  const challengeId = req.params.id
-  const challenge = challenges.find(c => c.id === challengeId)
+  const challengeId = req.params.id;
+  console.log("🔍 JOIN PARAM:", challengeId); // DEBUG
   
-  if (!challenge) {
-    return res.status(404).json({ error: "Challenge not found" })
+  // ✅ SAFETY CHECK
+  if (!challengeId || challengeId === 'undefined') {
+    return res.status(400).json({ error: "Invalid challenge ID" });
   }
   
-  // Add user to challenge (simulate user_id)
+  const challenge = challenges.find(c => c.id === challengeId);
+  if (!challenge) {
+    return res.status(404).json({ error: "Challenge not found" });
+  }
+  
   const userChallenge = {
     id: Date.now().toString(),
     challenge_id: challengeId,
-    user_id: 'current_user', // Simulate logged-in user
+    user_id: 'current_user',
     joined_at: new Date().toISOString()
-  }
+  };
   
   if (!userChallenges.find(uc => uc.challenge_id === challengeId && uc.user_id === 'current_user')) {
-    userChallenges.push(userChallenge)
-    console.log("🤝 User joined:", challenge.title)
-    res.json({ success: true, message: `Joined ${challenge.title}!` })
+    userChallenges.push(userChallenge);
+    console.log("🤝 Joined:", challenge.title);
+    res.json({ success: true, message: `Joined ${challenge.title}!` });
   } else {
-    res.status(409).json({ error: "Already joined" })
+    res.status(409).json({ error: "Already joined" });
   }
-})
+});
 
 // 🔥 WELLNESS SCORE
 app.get("/api/habits/wellness-score", (req, res) => 
