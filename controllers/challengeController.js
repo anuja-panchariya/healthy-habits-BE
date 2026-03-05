@@ -1,5 +1,6 @@
 import { supabase } from "../config/supabaseClient.js"
 
+// 1. GET ALL CHALLENGES
 export async function getChallenges(req, res) {
   try {
     console.log("🏆 getChallenges called")
@@ -13,6 +14,7 @@ export async function getChallenges(req, res) {
   }
 }
 
+// 2. CREATE CHALLENGE
 export async function createChallenge(req, res) {
   try {
     console.log("➕ createChallenge:", req.body)
@@ -28,6 +30,7 @@ export async function createChallenge(req, res) {
   }
 }
 
+// 3. JOIN CHALLENGE
 export async function joinChallenge(req, res) {
   try {
     const challengeId = req.params.id
@@ -46,25 +49,28 @@ export async function joinChallenge(req, res) {
   }
 }
 
+// 4. MY CHALLENGES (ONLY ONE VERSION!)
 export async function getMyChallenges(req, res) {
   try {
     console.log("👤 getMyChallenges called")
     
-    // Mock data for now (real user_id )
+    // MOCK DATA - FULL FEATURES
     const mockData = [
       {
-        id: 'mock-my-1',
+        id: 'mock1',
         title: 'Hydration Challenge',
         description: 'Drink 8 glasses daily',
         progress: 65,
-        duration: 30
+        duration: 30,
+        participants_count: 23
       },
       {
-        id: 'mock-my-2', 
+        id: 'mock2',
         title: '30 Min Walk',
         description: 'Daily walking challenge',
         progress: 42,
-        duration: 30
+        duration: 30,
+        participants_count: 8
       }
     ]
     
@@ -76,78 +82,21 @@ export async function getMyChallenges(req, res) {
   }
 }
 
-// MART HYBRID LEADERBOARD
+// 5. LEADERBOARD
 export async function getLeaderboard(req, res) {
   try {
     const challengeId = req.params.id
-    console.log("📊 getLeaderboard - Challenge ID:", challengeId)
+    console.log("📊 getLeaderboard:", challengeId)
     
-    // 1️⃣ TRY Real Supabase query
-    const { data, error } = await supabase
-      .from('user_challenges')
-      .select(`
-        id,
-        challenge_id,
-        user_id,
-        joined_at,
-        user_name
-      `)
-      .eq('challenge_id', challengeId)
-      .order('joined_at', { ascending: false })
-    
-    console.log("📊 Supabase response:", { 
-      data: data?.length || 0, 
-      error: error?.message || 'none' 
-    })
-    
-    // 2️⃣ IF real data exists → Return real users
-    if (data && Array.isArray(data) && data.length > 0) {
-      console.log("✅ REAL DATA FOUND:", data.length, "users")
-      const enrichedData = data.map((user, idx) => ({
-        ...user,
-        user_name: user.user_name || `User #${idx + 1}`,
-        rank: idx + 1
-      }))
-      return res.json(enrichedData)
-    }
-    
-    // 3️⃣ Supabase empty → Perfect Mock data
-    console.log("📊 Using MOCK DATA")
+    // Mock data for now
     const mockData = [
-      {
-        id: `mock1-${challengeId}`,
-        challenge_id: challengeId,
-        user_id: 'anuja_panchariya',
-        joined_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-        user_name: 'Anuja Panchariya',
-        rank: 1
-      },
-      {
-        id: `mock2-${challengeId}`,
-        challenge_id: challengeId,
-        user_id: 'rahul_sharma', 
-        joined_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-        user_name: 'Rahul Sharma',
-        rank: 2
-      },
-      {
-        id: `mock3-${challengeId}`,
-        challenge_id: challengeId,
-        user_id: 'priya_patel',
-        joined_at: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-        user_name: 'Priya Patel', 
-        rank: 3
-      }
+      { id: '1', user_name: 'Anuja Panchariya', rank: 1 },
+      { id: '2', user_name: 'Rahul Sharma', rank: 2 },
+      { id: '3', user_name: 'Priya Patel', rank: 3 }
     ]
     
-    console.log("✅ MOCK DATA sent:", mockData.length, "users")
     res.json(mockData)
-    
   } catch (error) {
-    console.error("💥 Leaderboard ERROR - Using FALLBACK:", error.message)
-    res.status(200).json([
-      { id: 'fallback1', user_name: 'Anuja Panchariya (You)', rank: 1 },
-      { id: 'fallback2', user_name: 'Demo User', rank: 2 }
-    ])
+    res.status(200).json([{ user_name: 'Anuja Panchariya', rank: 1 }])
   }
 }
