@@ -152,6 +152,34 @@ app.post("/api/challenges/:id/join", (req, res) => {
 app.get("/api/habits/wellness-score", (req, res) => 
   res.json({ score: calculateWellnessScore() })
 )
+// AI RECOMMENDATIONS - Add these routes
+app.get("/api/recommendations", async (req, res) => {
+  // Fast mock AI (no delay)
+  const aiRecommendations = [
+    {
+      id: 1, title: "15min Meditation", reason: "Boosts mood 42%", 
+      category: "mindfulness", priority: "high", icon: "🧘"
+    },
+    {
+      id: 2, title: "8 Glasses Water", reason: "3x focus boost", 
+      category: "hydration", priority: "medium", icon: "💧"
+    },
+    {
+      id: 3, title: "30min Walk", reason: "25% mood improvement", 
+      category: "fitness", priority: "high", icon: "🚶"
+    }
+  ];
+  res.json({ recommendations: aiRecommendations });
+});
+
+// AI INSIGHTS - Instant response
+app.get("/api/ai/insights", (req, res) => {
+  res.json({
+    insight: "Low hydration → 30% mood drop detected",
+    recommendation: "Prioritize 8 glasses water daily", 
+    confidence: "92%"
+  });
+});
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
