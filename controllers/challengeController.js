@@ -46,13 +46,43 @@ export async function joinChallenge(req, res) {
   }
 }
 
-// ✅ FIXED & COMPLETE - SMART HYBRID LEADERBOARD
+export async function getMyChallenges(req, res) {
+  try {
+    console.log("👤 getMyChallenges called")
+    
+    // Mock data for now (real user_id )
+    const mockData = [
+      {
+        id: 'mock-my-1',
+        title: 'Hydration Challenge',
+        description: 'Drink 8 glasses daily',
+        progress: 65,
+        duration: 30
+      },
+      {
+        id: 'mock-my-2', 
+        title: '30 Min Walk',
+        description: 'Daily walking challenge',
+        progress: 42,
+        duration: 30
+      }
+    ]
+    
+    console.log("✅ My Challenges MOCK:", mockData.length)
+    res.json(mockData)
+  } catch (err) {
+    console.error("💥 My Challenges ERROR:", err)
+    res.status(500).json({ error: err.message })
+  }
+}
+
+// MART HYBRID LEADERBOARD
 export async function getLeaderboard(req, res) {
   try {
     const challengeId = req.params.id
     console.log("📊 getLeaderboard - Challenge ID:", challengeId)
     
-    // 1️⃣ TRY Real Supabase query (FILTER BY CHALLENGE)
+    // 1️⃣ TRY Real Supabase query
     const { data, error } = await supabase
       .from('user_challenges')
       .select(`
@@ -73,39 +103,40 @@ export async function getLeaderboard(req, res) {
     // 2️⃣ IF real data exists → Return real users
     if (data && Array.isArray(data) && data.length > 0) {
       console.log("✅ REAL DATA FOUND:", data.length, "users")
-      
-      // Add user_name if missing (for frontend)
-      const enrichedData = data.map(user => ({
+      const enrichedData = data.map((user, idx) => ({
         ...user,
-        user_name: user.user_name || `User #${data.indexOf(user) + 1}`
+        user_name: user.user_name || `User #${idx + 1}`,
+        rank: idx + 1
       }))
-      
       return res.json(enrichedData)
     }
     
     // 3️⃣ Supabase empty → Perfect Mock data
-    console.log("📊 Using MOCK DATA (no real users yet)")
+    console.log("📊 Using MOCK DATA")
     const mockData = [
       {
-        id: `mock1-${challengeId}-${Date.now()}`,
+        id: `mock1-${challengeId}`,
         challenge_id: challengeId,
         user_id: 'anuja_panchariya',
-        joined_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),  // 2hr ago
-        user_name: 'Anuja Panchariya'  // ✅ Frontend ko real name!
+        joined_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        user_name: 'Anuja Panchariya',
+        rank: 1
       },
       {
-        id: `mock2-${challengeId}-${Date.now()}`,
+        id: `mock2-${challengeId}`,
         challenge_id: challengeId,
-        user_id: 'rahul_sharma',
-        joined_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),     // 30min ago
-        user_name: 'Rahul Sharma'
+        user_id: 'rahul_sharma', 
+        joined_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        user_name: 'Rahul Sharma',
+        rank: 2
       },
       {
-        id: `mock3-${challengeId}-${Date.now()}`,
+        id: `mock3-${challengeId}`,
         challenge_id: challengeId,
         user_id: 'priya_patel',
-        joined_at: new Date(Date.now() - 1000 * 60 * 12).toISOString(),     // 12min ago
-        user_name: 'Priya Patel'
+        joined_at: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
+        user_name: 'Priya Patel', 
+        rank: 3
       }
     ]
     
@@ -113,27 +144,10 @@ export async function getLeaderboard(req, res) {
     res.json(mockData)
     
   } catch (error) {
-    console.error("💥 Supabase ERROR - Using FALLBACK MOCK:", error.message)
-    
-    // 4️⃣ ERROR fallback (Supabase totally down)
-    const fallbackMock = [
-      {
-        id: `fallback1-${Date.now()}`,
-        challenge_id: req.params.id,
-        user_id: 'anuja_panchariya',
-        joined_at: new Date().toISOString(),
-        user_name: 'Anuja Panchariya (You)'
-      },
-      {
-        id: `fallback2-${Date.now()}`,
-        challenge_id: req.params.id,
-        user_id: 'demo_user',
-        joined_at: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-        user_name: 'Demo User'
-      }
-    ]
-    
-    console.log("✅ FALLBACK MOCK sent:", fallbackMock.length, "users")
-    res.status(200).json(fallbackMock)  // 200 = Frontend success
+    console.error("💥 Leaderboard ERROR - Using FALLBACK:", error.message)
+    res.status(200).json([
+      { id: 'fallback1', user_name: 'Anuja Panchariya (You)', rank: 1 },
+      { id: 'fallback2', user_name: 'Demo User', rank: 2 }
+    ])
   }
 }
