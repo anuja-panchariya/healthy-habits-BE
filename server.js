@@ -180,6 +180,27 @@ app.get("/api/ai/insights", (req, res) => {
     confidence: "92%"
   });
 });
+// 🔥 MOOD ROUTES - SUPABASE 
+app.get("/api/mood", async (req, res) => {
+  try {
+    const moodRouter = require('./routes/mood.js').default;
+    // OR simple mock for now
+    res.json([
+      { id: 1, mood: 'great', notes: 'Productive day!', created_at: new Date().toISOString() }
+    ]);
+  } catch {
+    res.json([]); // Empty fallback
+  }
+});
+
+app.post("/api/mood", async (req, res) => {
+  console.log("➕ Mood logged:", req.body);
+  res.status(201).json({ 
+    id: Date.now().toString(), 
+    ...req.body, 
+    created_at: new Date().toISOString()
+  });
+});
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
