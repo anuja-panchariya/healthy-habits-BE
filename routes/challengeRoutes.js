@@ -4,7 +4,8 @@ import {
   getChallenges, 
   createChallenge,
   joinChallenge,
-  getLeaderboard      
+  getLeaderboard,
+  getMyChallenges  
 } from "../controllers/challengeController.js"
 
 const router = express.Router()
@@ -13,4 +14,6 @@ router.get('/', requireAuth(), getChallenges)
 router.post('/', requireAuth(), createChallenge)
 router.post('/:id/join', requireAuth(), joinChallenge)     
 router.get('/:id/leaderboard', requireAuth(), getLeaderboard)
+router.get('/my', requireAuth(), getMyChallenges) 
+
 export default router
