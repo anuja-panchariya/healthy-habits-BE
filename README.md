@@ -2,7 +2,7 @@
  🥗 **Healthy Habits Tracker**
  Full-Stack Wellness App with AI Insights & Realtime Analytics
 
-Frontend : https://healthy-habits-frontend.vercel.app
+Frontend : https://healthy-habits-frontend.onrender.com
 Backend :https://healthy-habits-be-1.onrender.com
 
 
