@@ -17,50 +17,55 @@ dotenv.config()
 const app = express()
 const PORT = process.env.PORT || 5000
 
+//  CORS - FIXED for Render frontend
 app.use(cors({
-  origin: "https://healthy-habits-frontend.onrender.com",  
+  origin: [
+    "https://healthy-habits-frontend.onrender.com",
+    "http://localhost:3000",
+    "https://healthy-habits-v2.netlify.app"
+  ],
   credentials: true
 }))
 
-// ✅ EXPRESS JSON
+//  EXPRESS JSON + URL ENCODED
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
-// ROOT ROUTE 
+// 🩺 HEALTH CHECK FIRST
+app.get("/api/health", (req, res) => res.json({ status: "healthy", timestamp: new Date().toISOString() }))
+
 app.get("/", (req, res) => {
   res.json({ 
-    message: " Healthy Habits BE Live!", 
+    message: "🖤💚 Healthy Habits BE Live!",
     status: "running",
-    endpoints: ["/api/health", "/api/habits", "/api/analytics"]
+    endpoints: [
+      "/api/health",
+      "/api/habits (GET/POST)",
+      "/api/moods (GET/POST)", 
+      "/api/analytics",
+      "/api/challenges"
+    ]
   })
 })
 
-app.get('/api/streaks', async (req, res) => {
-  // Return habit logs for heatmap
-});
-
-app.get('/api/ai-suggestions', async (req, res) => {
-  // Analyze categories → return smart suggestions
-});
-
-//  HEALTH CHECK 
-app.get("/api/health", (req, res) => res.json({ status: "healthy" }))
-
 app.use(authMiddleware)
 
-app.use("/api/habits", habitRoutes)
+app.use("/api/habits", habitRoutes)      
+app.use("/api/moods", moodRoutes)        
 app.use("/api/analytics", analyticsRoutes)
 app.use("/api/challenges", challengeRoutes)
-app.use("/api/moods", moodRoutes)
 app.use("/api/ai", aiRoutes)
 app.use("/api/reminders", reminderRoutes)
 
-
+// 🛡️ ERROR HANDLER LAST
 app.use(errorHandler)
 
+// ⏰ DAILY CRON
 cron.schedule('0 8 * * *', async () => {
   console.log('🌅 Auto-sending daily reminders...')
 })
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`)
+  console.log(`🚀 Black Emerald BE running on port ${PORT}`)
+  console.log(`📍 Test: http://localhost:${PORT}/api/health`)
 })
